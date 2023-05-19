@@ -77,6 +77,10 @@ public class StubPlayer extends PlayerImpl implements Player {
     public void shuffleLibrary(Ability source, Game game) {
 
     }
+    @Override
+    public void shuffleContraptionDeck(Ability source, Game game) {
+
+    }
 
     public StubPlayer(String name, RangeOfInfluence range) {
         super(name, range);

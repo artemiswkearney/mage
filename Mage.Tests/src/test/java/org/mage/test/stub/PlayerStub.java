@@ -27,6 +27,7 @@ import mage.game.Game;
 import mage.game.Graveyard;
 import mage.game.Table;
 import mage.game.combat.CombatGroup;
+import mage.game.command.ContraptionDeck;
 import mage.game.draft.Draft;
 import mage.game.events.GameEvent;
 import mage.game.match.Match;
@@ -90,6 +91,11 @@ public class PlayerStub implements Player {
 
     @Override
     public Graveyard getGraveyard() {
+        return null;
+    }
+
+    @Override
+    public ContraptionDeck getContraptionDeck() {
         return null;
     }
 
@@ -532,6 +538,10 @@ public class PlayerStub implements Player {
 
     @Override
     public void shuffleLibrary(Ability source, Game game) {
+
+    }
+    @Override
+    public void shuffleContraptionDeck(Ability source, Game game) {
 
     }
 

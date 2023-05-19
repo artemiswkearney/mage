@@ -33,6 +33,7 @@ import mage.game.GameImpl;
 import mage.game.Graveyard;
 import mage.game.Table;
 import mage.game.combat.CombatGroup;
+import mage.game.command.ContraptionDeck;
 import mage.game.draft.Draft;
 import mage.game.events.GameEvent;
 import mage.game.match.Match;
@@ -3145,6 +3146,10 @@ public class TestPlayer implements Player {
         computerPlayer.shuffleLibrary(source, game);
     }
 
+    public void shuffleContraptionDeck(Ability source, Game game) {
+        computerPlayer.shuffleContraptionDeck(source, game);
+    }
+
     @Override
     public void revealCards(Ability source, Cards cards, Game game) {
         computerPlayer.revealCards(source, cards, game);
@@ -3255,6 +3260,11 @@ public class TestPlayer implements Player {
     @Override
     public Cards getSideboard() {
         return computerPlayer.getSideboard();
+    }
+
+    @Override
+    public ContraptionDeck getContraptionDeck() {
+        return computerPlayer.getContraptionDeck();
     }
 
     @Override

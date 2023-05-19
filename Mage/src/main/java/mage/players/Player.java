@@ -26,12 +26,14 @@ import mage.filter.FilterMana;
 import mage.filter.FilterPermanent;
 import mage.game.*;
 import mage.game.combat.CombatGroup;
+import mage.game.command.ContraptionDeck;
 import mage.game.draft.Draft;
 import mage.game.events.GameEvent;
 import mage.game.match.Match;
 import mage.game.match.MatchPlayer;
 import mage.game.permanent.Permanent;
 import mage.game.tournament.Tournament;
+import mage.game.turn.Step;
 import mage.players.net.UserData;
 import mage.target.Target;
 import mage.target.TargetAmount;
@@ -98,9 +100,15 @@ public interface Player extends MageItem, Copyable<Player> {
 
     Library getLibrary();
 
+
     Cards getSideboard();
 
     Graveyard getGraveyard();
+
+    /**
+     * Gets the player's contraption deck, if they have one. Otherwise, null.
+     */
+    ContraptionDeck getContraptionDeck();
 
     Abilities<Ability> getAbilities();
 
@@ -383,6 +391,12 @@ public interface Player extends MageItem, Copyable<Player> {
      * @param game
      */
     void shuffleLibrary(Ability source, Game game);
+
+    /**
+     * @param source can be null for game default shuffle (non effects)
+     * @param game
+     */
+    void shuffleContraptionDeck(Ability source, Game game);
 
     /**
      * Draw cards. If you call it in replace events then use method with event.appliedEffects param instead.

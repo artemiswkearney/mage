@@ -3,6 +3,7 @@ package mage.cards.decks;
 import mage.cards.Card;
 import mage.cards.repository.CardInfo;
 import mage.cards.repository.CardRepository;
+import mage.constants.SubType;
 import mage.game.GameException;
 import mage.util.Copyable;
 import mage.util.DeckUtil;
@@ -231,6 +232,13 @@ public class Deck implements Serializable, Copyable<Deck> {
         return cards
                 .stream()
                 .filter(card -> !card.isExtraDeckCard())
+                .collect(Collectors.toSet());
+    }
+
+    public Set<Card> getContraptions() {
+        return cards
+                .stream()
+                .filter(card -> card.isExtraDeckCard() && card.hasSubTypeForDeckbuilding(SubType.CONTRAPTION))
                 .collect(Collectors.toSet());
     }
 

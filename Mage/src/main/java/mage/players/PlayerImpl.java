@@ -42,6 +42,7 @@ import mage.filter.predicate.permanent.PermanentIdPredicate;
 import mage.game.*;
 import mage.game.combat.CombatGroup;
 import mage.game.command.CommandObject;
+import mage.game.command.ContraptionDeck;
 import mage.game.events.*;
 import mage.game.match.MatchPlayer;
 import mage.game.permanent.Permanent;
@@ -87,6 +88,7 @@ public abstract class PlayerImpl implements Player, Serializable {
     protected boolean draws;
     protected boolean loses;
     protected Library library;
+    protected ContraptionDeck contraptionDeck;
     protected Cards sideboard;
     protected Cards hand;
     protected Graveyard graveyard;
@@ -224,6 +226,9 @@ public abstract class PlayerImpl implements Player, Serializable {
         this.commandersIds = player.commandersIds;
         this.abilities = player.abilities.copy();
         this.counters = player.counters.copy();
+        if (player.contraptionDeck != null) {
+            this.contraptionDeck = player.contraptionDeck.copy();
+        }
 
         this.landsPlayed = player.landsPlayed;
         this.landsPerTurn = player.landsPerTurn;
@@ -319,6 +324,9 @@ public abstract class PlayerImpl implements Player, Serializable {
         this.sideboard = player.getSideboard().copy();
         this.hand = player.getHand().copy();
         this.graveyard = player.getGraveyard().copy();
+        if (player.getContraptionDeck() != null) {
+            this.contraptionDeck = player.getContraptionDeck().copy();
+        }
 
         //noinspection deprecation - it's ok to use it in inner methods
         this.commandersIds = new HashSet<>(player.getCommandersIds());
@@ -396,7 +404,15 @@ public abstract class PlayerImpl implements Player, Serializable {
         for (Card card : deck.getSideboard()) {
             sideboard.add(card);
         }
-        //TODO ARTI initialize extra decks here!
+        Set<Card> contraptions = deck.getContraptions();
+        if (contraptions.isEmpty()) {
+            this.contraptionDeck = null;
+        }
+        else {
+            this.contraptionDeck = new ContraptionDeck(this.playerId);
+            this.contraptionDeck.addAll(contraptions, game);
+            game.getState().addCommandObject(this.contraptionDeck);
+        }
     }
 
     /**
@@ -1687,6 +1703,19 @@ public abstract class PlayerImpl implements Player, Serializable {
             game.fireEvent(GameEvent.getEvent(GameEvent.EventType.LIBRARY_SHUFFLED, playerId, source, playerId));
         }
     }
+    @Override
+    public void shuffleContraptionDeck(Ability source, Game game) {
+        // not currently needed
+        // if (!game.replaceEvent(GameEvent.getEvent(GameEvent.EventType.SHUFFLE_CONTRAPTION_DECK, playerId, source, playerId))) {
+        if (this.contraptionDeck != null) {
+            this.contraptionDeck.shuffle();
+            if (!game.isSimulation()) {
+                game.informPlayers(getLogName() + "'s contraption deck is shuffled" + CardUtil.getSourceLogName(game, source));
+            }
+            // not currently needed
+            // game.fireEvent(GameEvent.getEvent(GameEvent.EventType.CONTRAPTION_DECK_SHUFFLED, playerId, source, playerId));
+        }
+    }
 
     @Override
     public void revealCards(Ability source, Cards cards, Game game) {
@@ -1977,6 +2006,10 @@ public abstract class PlayerImpl implements Player, Serializable {
     @Override
     public Cards getSideboard() {
         return sideboard;
+    }
+
+    public ContraptionDeck getContraptionDeck() {
+        return contraptionDeck;
     }
 
     @Override
