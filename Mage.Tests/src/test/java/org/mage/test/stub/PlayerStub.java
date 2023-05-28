@@ -1444,6 +1444,11 @@ public class PlayerStub implements Player {
     }
 
     @Override
+    public boolean assembleContraptions(int value, Ability source, boolean sourceIsAssembler, Game game) {
+        return false;
+    }
+
+    @Override
     public UserData getControllingPlayersUserData(Game game) {
         return null;
     }

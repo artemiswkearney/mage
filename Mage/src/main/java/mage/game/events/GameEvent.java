@@ -497,6 +497,32 @@ public class GameEvent implements Serializable {
         REMOVED_FROM_COMBAT, // targetId    id of permanent removed from combat
         FORETOLD, // targetId   id of card foretold
         FORETELL, // targetId   id of card foretell  playerId   id of the controller
+        ASSEMBLE_CONTRAPTIONS,
+        /* ASSEMBLE_CONTRAPTIONS (when a player takes cards from their contraption deck and assembles them)
+         targetId    id of the object doing the assembling
+                     (permanent for "{this} assembles...", player for "assemble...")
+         sourceId    sourceId of the ability causing the assembling
+         playerId    player getting the contraption(s)
+         amount      number of contraptions being assembled
+         flag        not used for this event
+         */
+        ASSEMBLED_CONTRAPTION,
+        /* ASSEMBLED_CONTRAPTION (when the contraption itself is put on the battlefield)
+         targetId    the contraption being assembled
+         sourceId    sourceId of the ability causing the assembling
+         playerId    controller of the contraption
+         amount      not used for this event
+         flag        not used for this event
+         (note: does not currently track what actually did the assembling)
+         */
+        CRANKED_CONTRAPTION,
+        /* CRANKED_CONTRAPTION
+         targetId    the contraption being cranked
+         sourceId    not used for this event
+         playerId    controller of the contraption
+         amount      not used for this event
+         flag        not used for this event
+         */
         //custom events
         CUSTOM_EVENT
     }

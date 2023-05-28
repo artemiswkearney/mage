@@ -1100,6 +1100,8 @@ public interface Player extends MageItem, Copyable<Player> {
 
     void chooseRingBearer(Game game);
 
+    boolean assembleContraptions(int value, Ability source, boolean sourceIsAssembler, Game game);
+
     /**
      * Function to query if the player has strictChooseMode enabled. Only the test player can have it.
      * Function is added here so that the test suite project does not have to be imported into the client/server project.

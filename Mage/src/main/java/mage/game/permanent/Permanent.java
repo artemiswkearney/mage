@@ -85,6 +85,15 @@ public interface Permanent extends Card, Controllable {
      */
     boolean setClassLevel(int classLevel);
 
+    int getSprocket();
+
+    /**
+     * Assign contraption to a sprocket.
+     * @param sprocket
+     * @return false if can't be assigned to a sprocket (e.g. not a contraption) or sprocket outside range
+     */
+    boolean setSprocket(int sprocket);
+
     void addGoadingPlayer(UUID playerId);
 
     Set<UUID> getGoadingPlayers();

@@ -4409,6 +4409,11 @@ public class TestPlayer implements Player {
     }
 
     @Override
+    public boolean assembleContraptions(int value, Ability source, boolean sourceIsAssembler, Game game) {
+        return computerPlayer.assembleContraptions(value, source, sourceIsAssembler, game);
+    }
+
+    @Override
     public SpellAbility chooseAbilityForCast(Card card, Game game, boolean noMana) {
         assertAliasSupportInChoices(false);
         MageObject object = game.getObject(card.getId()); // must be object to find real abilities (example: commander)

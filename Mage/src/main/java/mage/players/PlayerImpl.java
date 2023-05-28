@@ -24,6 +24,7 @@ import mage.cards.*;
 import mage.cards.decks.Deck;
 import mage.choices.Choice;
 import mage.choices.ChoiceImpl;
+import mage.choices.ChoiceSprocket;
 import mage.constants.*;
 import mage.counters.Counter;
 import mage.counters.CounterType;
@@ -5222,6 +5223,66 @@ public abstract class PlayerImpl implements Player, Serializable {
             game.fireEvent(GameEvent.getEvent(GameEvent.EventType.RING_BEARER_CHOSEN, newBearerId, null, getId()));
             this.ringBearerId = newBearerId;
         }
+    }
+
+    @Override
+    public boolean assembleContraptions(int value, Ability source, boolean sourceIsAssembler, Game game) {
+        AssembleContraptionsEvent event = new AssembleContraptionsEvent(source, getId(), value, sourceIsAssembler);
+        if (this.getContraptionDeck() == null) return false;
+        if (game.replaceEvent(event)) return false;
+        boolean assembledAny = false;
+        Map<Card, Integer> contraptionsAndSprockets = new HashMap<>();
+
+        // flip and choose sprockets one at a time, not flip all then sprocket all
+        // reference: Work a Double reminder text
+        List<Card> contraptionDeckCards = contraptionDeck.getCards(game);
+        for (Card contraptionCard : contraptionDeckCards.subList(0, Math.min(value, contraptionDeckCards.size()))) {
+            contraptionCard.setFaceDown(false, game);
+            // make it easier to read the contraption you're assembling
+            this.lookAtCards(source, "assembling", new CardsImpl(contraptionCard), game);
+            ChoiceSprocket sprocketChoice = new ChoiceSprocket(contraptionCard.getName());
+            this.choose(Outcome.Neutral, sprocketChoice, game);
+            //TODO would be nice to remove the look-at window here if I could figure out how
+            int sprocket = Integer.parseInt(sprocketChoice.getChoice());
+            contraptionsAndSprockets.put(contraptionCard, sprocket);
+        }
+        // actually move the cards all at once so they enter the battlefield together
+        if (moveCards(contraptionsAndSprockets.keySet(), Zone.BATTLEFIELD, source, game)) {
+            assembledAny = true;
+            contraptionsAndSprockets.forEach((contraptionCard, sprocket) -> {
+                // if it's not on the battlefield, it can't be assembled / on a sprocket
+                if (game.getState().getZone(contraptionCard.getId()) != Zone.BATTLEFIELD) return;
+
+                game.getPermanent(contraptionCard.getId()).setSprocket(sprocket);
+                if (sourceIsAssembler) {
+                    game.informPlayers(source.getSourceObject(game).getLogName() + " assembles " + contraptionCard.getLogName());
+                }
+                else {
+                    game.informPlayers(getLogName() + " assembles " + contraptionCard.getLogName());
+                }
+                game.fireEvent(GameEvent.getEvent(
+                        GameEvent.EventType.ASSEMBLED_CONTRAPTION,
+                        contraptionCard.getId(),
+                        source,
+                        getId()));
+            });
+        }
+        Cards failedToMove = new CardsImpl(contraptionsAndSprockets.keySet().stream()
+                .filter(card -> game.getState().getZone(card.getId()) == Zone.COMMAND)
+                .filter(card -> contraptionDeck.getCard(card.getId(), game) != null)
+                .collect(Collectors.toSet()));
+        if (!failedToMove.isEmpty()) {
+            // niche situation where the contraptions can't enter the battlefield and stay in the contraption deck
+            // (at least possible with Worms of the Earth + Mystic Reflection + manland + March of the Machines,
+            // if all those are implemented correctly)
+            // since they were turned face up at one point, reveal them
+            this.revealCards(source, "prevented from assembling", failedToMove, game);
+            for (Card card : failedToMove.getCards(game)) {
+                // cards in the contraption deck should still be face-down
+                card.setFaceDown(true, game);
+            }
+        }
+        return assembledAny;
     }
 
     @Override

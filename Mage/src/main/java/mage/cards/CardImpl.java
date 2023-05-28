@@ -18,6 +18,7 @@ import mage.counters.Counters;
 import mage.filter.FilterMana;
 import mage.game.*;
 import mage.game.command.CommandObject;
+import mage.game.command.ExtraDeck;
 import mage.game.events.*;
 import mage.game.permanent.Permanent;
 import mage.game.permanent.PermanentCard;
@@ -503,7 +504,20 @@ public abstract class CardImpl extends MageObjectImpl implements Card {
                     if (commandObject.getId().equals(objectId)) {
                         lkiObject = commandObject;
                     }
+                    else if (commandObject instanceof ExtraDeck) {
+                        ExtraDeck deck = (ExtraDeck)commandObject;
+                        Card foundCard = deck.getCard(objectId, game);
+                        if (foundCard != null) {
+                            //TODO is LKI needed? doesn't seem to be set for library...
+                            lkiObject = foundCard;
+                            deck.remove(objectId, game);
+                            removed = true;
+                            break;
+                        }
+                    }
+                    //TODO ARTI also check extra yards once you implement them
                 }
+                if (removed) break; // found in an extra deck
                 if (lkiObject != null) {
                     removed = game.getState().getCommand().remove(lkiObject);
                 }

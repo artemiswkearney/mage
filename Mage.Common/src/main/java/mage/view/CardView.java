@@ -11,6 +11,8 @@ import mage.abilities.dynamicvalue.common.ManacostVariableValue;
 import mage.abilities.effects.Effect;
 import mage.abilities.effects.Effects;
 import mage.abilities.icon.CardIcon;
+import mage.abilities.icon.CardIconImpl;
+import mage.abilities.icon.CardIconType;
 import mage.abilities.icon.other.CommanderCardIcon;
 import mage.abilities.icon.other.FaceDownCardIcon;
 import mage.abilities.icon.other.VariableCostCardIcon;
@@ -441,6 +443,17 @@ public class CardView extends SimpleCardView {
                 if (owner != null && game.isCommanderObject(owner, permanent)) {
                     this.cardIcons.add(CommanderCardIcon.instance);
                 }
+            }
+            // contraption sprocket
+            if (permanent.getCardType(game).contains(CardType.ARTIFACT)
+                    && permanent.getSubtype(game).contains(SubType.CONTRAPTION)
+                    // 0 = no sprocket
+                    && permanent.getSprocket() != 0) {
+                this.cardIcons.add(new CardIconImpl(
+                        CardIconType.OTHER_SPROCKET,
+                        "Sprocket: " + permanent.getSprocket(),
+                        String.valueOf(permanent.getSprocket()))
+                );
             }
         } else {
             if (card.isCopy()) {

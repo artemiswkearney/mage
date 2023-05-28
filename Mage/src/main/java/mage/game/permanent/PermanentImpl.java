@@ -73,6 +73,8 @@ public abstract class PermanentImpl extends CardImpl implements Permanent {
     protected boolean manifested = false;
     protected boolean morphed = false;
     protected int classLevel = 1;
+    // 0 means no sprocket
+    protected int sprocket = 0;
     protected final Set<UUID> goadingPlayers = new HashSet<>();
     protected UUID originalControllerId;
     protected UUID controllerId;
@@ -169,6 +171,7 @@ public abstract class PermanentImpl extends CardImpl implements Permanent {
         this.monstrous = permanent.monstrous;
         this.renowned = permanent.renowned;
         this.classLevel = permanent.classLevel;
+        this.sprocket = permanent.sprocket;
         this.goadingPlayers.addAll(permanent.goadingPlayers);
         this.pairedPermanent = permanent.pairedPermanent;
         this.bandedCards.addAll(permanent.bandedCards);
@@ -1661,6 +1664,22 @@ public abstract class PermanentImpl extends CardImpl implements Permanent {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public int getSprocket() {
+        return sprocket;
+    }
+
+    @Override
+    public boolean setSprocket(int sprocket) {
+        // sprockets are only for Contraption artifacts
+        if (this.cardType.stream().noneMatch(c -> c == CardType.ARTIFACT)) return false;
+        if (this.subtype.stream().noneMatch(s -> s == SubType.CONTRAPTION)) return false;
+        // allow 0 (no sprocket), 1, 2, and 3
+        if (sprocket < 0 || sprocket > 3) return false;
+        this.sprocket = sprocket;
+        return true;
     }
 
     @Override
