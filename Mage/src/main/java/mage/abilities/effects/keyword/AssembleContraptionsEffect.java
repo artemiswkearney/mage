@@ -29,7 +29,7 @@ public class AssembleContraptionsEffect extends OneShotEffect {
     private final String selfName;
 
     public AssembleContraptionsEffect(boolean sourceIsAssembler, String selfName, int amount) {
-        this(sourceIsAssembler, selfName, StaticValue.get(amount))
+        this(sourceIsAssembler, selfName, StaticValue.get(amount));
     }
     public AssembleContraptionsEffect(boolean sourceIsAssembler, String selfName, DynamicValue amount) {
         super(Outcome.PutCardInPlay);
@@ -57,12 +57,13 @@ public class AssembleContraptionsEffect extends OneShotEffect {
     }
     @Override
     public boolean apply(Game game, Ability source) {
-        game.getPlayer(source.getSourceId()).assembleContraptions(
+        game.getPlayer(source.getControllerId()).assembleContraptions(
                 amount.calculate(game, source, this),
                 source,
                 sourceIsAssembler,
                 game
         );
+        return true;
     }
 
     @Override
