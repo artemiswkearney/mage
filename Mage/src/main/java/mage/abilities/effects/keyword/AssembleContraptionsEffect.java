@@ -1,11 +1,15 @@
 package mage.abilities.effects.keyword;
 
 import mage.abilities.Ability;
+import mage.abilities.Mode;
+import mage.abilities.dynamicvalue.DynamicValue;
+import mage.abilities.dynamicvalue.common.StaticValue;
 import mage.abilities.effects.Effect;
 import mage.abilities.effects.OneShotEffect;
 import mage.constants.Outcome;
 import mage.game.Game;
 import mage.game.events.AssembleContraptionsEvent;
+import mage.util.CardUtil;
 
 /**
  * attempting to infer likely rules from "Open an Attraction", except sometimes a source does the assembling
@@ -21,14 +25,20 @@ import mage.game.events.AssembleContraptionsEvent;
  */
 public class AssembleContraptionsEffect extends OneShotEffect {
     private final boolean sourceIsAssembler;
-    private final int amount;
+    private final DynamicValue amount;
     private final String selfName;
 
     public AssembleContraptionsEffect(boolean sourceIsAssembler, String selfName, int amount) {
+        this(sourceIsAssembler, selfName, StaticValue.get(amount))
+    }
+    public AssembleContraptionsEffect(boolean sourceIsAssembler, String selfName, DynamicValue amount) {
         super(Outcome.PutCardInPlay);
         this.sourceIsAssembler = sourceIsAssembler;
         this.selfName = selfName;
         this.amount = amount;
+    }
+    public AssembleContraptionsEffect(boolean sourceIsAssembler, DynamicValue amount) {
+        this(sourceIsAssembler, "{this}", amount);
     }
     public AssembleContraptionsEffect(boolean sourceIsAssembler, int amount) {
         this(sourceIsAssembler, "{this}", amount);
@@ -47,11 +57,39 @@ public class AssembleContraptionsEffect extends OneShotEffect {
     }
     @Override
     public boolean apply(Game game, Ability source) {
-        return false;
+        game.getPlayer(source.getSourceId()).assembleContraptions(
+                amount.calculate(game, source, this),
+                source,
+                sourceIsAssembler,
+                game
+        );
     }
 
     @Override
     public Effect copy() {
         return new AssembleContraptionsEffect(this);
+    }
+
+    @Override
+    public String getText(Mode mode) {
+        if (staticText != null && !staticText.isEmpty()) {
+            return staticText;
+        }
+        StringBuilder sb = new StringBuilder();
+        if (sourceIsAssembler) {
+            sb.append(selfName).append(" assembles ");
+        }
+        else {
+            sb.append("assemble ");
+        }
+        String value = amount.toString();
+        sb.append(CardUtil.numberToText(value, "a"));
+        sb.append(value.equals("1") ? " Contraption" : " Contraptions");
+        String message = amount.getMessage();
+        if (!message.isEmpty()) {
+            sb.append(value.equals("X") ? ", where X is " : " for each ");
+            sb.append(message);
+        }
+        return sb.toString();
     }
 }
