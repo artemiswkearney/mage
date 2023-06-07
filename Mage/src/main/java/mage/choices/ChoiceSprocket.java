@@ -10,7 +10,11 @@ public class ChoiceSprocket extends ChoiceImpl {
     }
     public ChoiceSprocket(String chooseFor) {
         this();
-        this.message = "Choose a sprocket for " + chooseFor;
+        this.message = "Choose a sprocket for " + chooseFor + ".";
+    }
+    public ChoiceSprocket(String chooseFor, int nextSprocket) {
+        this();
+        this.message = "Choose a sprocket for " + chooseFor + ". (You will crank sprocket " + nextSprocket + " next.)";
     }
     public ChoiceSprocket(ChoiceSprocket choice) {
         super(choice);

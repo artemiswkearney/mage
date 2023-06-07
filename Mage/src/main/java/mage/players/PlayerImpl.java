@@ -31,14 +31,12 @@ import mage.counters.CounterType;
 import mage.counters.Counters;
 import mage.designations.Designation;
 import mage.designations.DesignationType;
-import mage.filter.FilterCard;
-import mage.filter.FilterMana;
-import mage.filter.FilterPermanent;
-import mage.filter.StaticFilters;
+import mage.filter.*;
 import mage.filter.common.FilterControlledPermanent;
 import mage.filter.common.FilterCreatureForCombat;
 import mage.filter.common.FilterCreatureForCombatBlock;
 import mage.filter.predicate.Predicates;
+import mage.filter.predicate.mageobject.SprocketPredicate;
 import mage.filter.predicate.permanent.PermanentIdPredicate;
 import mage.game.*;
 import mage.game.combat.CombatGroup;
@@ -190,6 +188,7 @@ public abstract class PlayerImpl implements Player, Serializable {
      */
     protected final Map<PhaseStep, Step.StepPart> silentPhaseSteps = ImmutableMap.<PhaseStep, Step.StepPart>builder().
             put(PhaseStep.DECLARE_ATTACKERS, Step.StepPart.PRE).build();
+    private int crankCounter = 0;
 
     public PlayerImpl(String name, RangeOfInfluence range) {
         this(UUID.randomUUID());
@@ -230,6 +229,7 @@ public abstract class PlayerImpl implements Player, Serializable {
         if (player.contraptionDeck != null) {
             this.contraptionDeck = player.contraptionDeck.copy();
         }
+        this.crankCounter = player.crankCounter;
 
         this.landsPlayed = player.landsPlayed;
         this.landsPerTurn = player.landsPerTurn;
@@ -387,6 +387,8 @@ public abstract class PlayerImpl implements Player, Serializable {
 
         this.ringBearerId = player.getRingBearerId();
 
+        this.crankCounter = player.getCrankCounter();
+
         this.designations.clear();
         for (Designation object : player.getDesignations()) {
             this.designations.add(object.copy());
@@ -413,6 +415,7 @@ public abstract class PlayerImpl implements Player, Serializable {
             this.contraptionDeck = new ContraptionDeck(this.playerId);
             this.contraptionDeck.addAll(contraptions, game);
             game.getState().addCommandObject(this.contraptionDeck);
+            this.initializeCrankCounter(game);
         }
     }
 
@@ -474,6 +477,13 @@ public abstract class PlayerImpl implements Player, Serializable {
 
         this.getManaPool().init(); // needed to remove mana that not empties on step change from previous game if left
         this.phyrexianColors = null;
+
+        if (this.contraptionDeck != null && this.contraptionDeck.size() > 0) {
+            this.crankCounter = 3;
+        }
+        else {
+            this.crankCounter = 0;
+        }
 
         this.designations.clear();
     }
@@ -5230,6 +5240,11 @@ public abstract class PlayerImpl implements Player, Serializable {
         AssembleContraptionsEvent event = new AssembleContraptionsEvent(source, getId(), value, sourceIsAssembler);
         if (this.getContraptionDeck() == null) return false;
         if (game.replaceEvent(event)) return false;
+
+        if (this.crankCounter == 0) {
+            this.initializeCrankCounter(game);
+        }
+
         boolean assembledAny = false;
         Map<Card, Integer> contraptionsAndSprockets = new HashMap<>();
 
@@ -5240,7 +5255,7 @@ public abstract class PlayerImpl implements Player, Serializable {
             contraptionCard.setFaceDown(false, game);
             // make it easier to read the contraption you're assembling
             this.lookAtCards(source, "assembling", new CardsImpl(contraptionCard), game);
-            ChoiceSprocket sprocketChoice = new ChoiceSprocket(contraptionCard.getName());
+            ChoiceSprocket sprocketChoice = new ChoiceSprocket(contraptionCard.getName(), (this.crankCounter + 1) % 3);
             this.choose(Outcome.Neutral, sprocketChoice, game);
             //TODO would be nice to remove the look-at window here if I could figure out how
             int sprocket = Integer.parseInt(sprocketChoice.getChoice());
@@ -5260,7 +5275,7 @@ public abstract class PlayerImpl implements Player, Serializable {
                 else {
                     game.informPlayers(getLogName() + " assembles " + contraptionCard.getLogName());
                 }
-                game.fireEvent(GameEvent.getEvent(
+                game.addSimultaneousEvent(GameEvent.getEvent(
                         GameEvent.EventType.ASSEMBLED_CONTRAPTION,
                         contraptionCard.getId(),
                         source,
@@ -5283,6 +5298,48 @@ public abstract class PlayerImpl implements Player, Serializable {
             }
         }
         return assembledAny;
+    }
+
+    @Override
+    public int getCrankCounter() {
+        return this.crankCounter;
+    }
+
+    @Override
+    public void initializeCrankCounter(Game game) {
+        if (this.crankCounter == 0) {
+            this.crankCounter = 3;
+            //TODO create crank/sprocket hint like day/night hint
+        }
+    }
+
+    private static final FilterControlledPermanent CONTRAPTION_FILTER = new FilterControlledPermanent(SubType.CONTRAPTION, "Contraptions you control");
+
+    @Override
+    public void advanceCrankCounter(Game game, boolean evenIfNoContraptions) {
+        if (evenIfNoContraptions) {
+            // could happen even if no contraptions, so initialize here
+            this.initializeCrankCounter(game);
+        }
+        else if (!game.getBattlefield().contains(CONTRAPTION_FILTER, this.playerId, null, game, 1)) {
+            // only advance if we control a contraption
+            return;
+        }
+        crankCounter = (crankCounter + 1) % 3;
+        game.informPlayers(getLogName() + "'s CRANK! counter moves to " + crankCounter);
+        FilterPermanent filter = CONTRAPTION_FILTER.copy();
+        filter.add(SprocketPredicate.forSprocket(crankCounter));
+        filter.setMessage("any number of sprocket " + crankCounter + "'s Contraptions");
+        if (game.getBattlefield().contains(filter, this.playerId, null, game, 1)) {
+            Target target = new TargetPermanent(0, Integer.MAX_VALUE, filter, true)
+                    .withChooseHint("to crank");
+            target.setRequired(true);
+            target.choose(Outcome.Benefit, this.playerId, null, null, game);
+            for (UUID chosen : target.getTargets()) {
+                game.addSimultaneousEvent(GameEvent.getEvent(GameEvent.EventType.CRANKED_CONTRAPTION, chosen, null, playerId));
+                game.informPlayers(getLogName() + " cranks " + game.getPermanent(chosen).getLogName());
+            }
+        }
     }
 
     @Override

@@ -1449,6 +1449,21 @@ public class PlayerStub implements Player {
     }
 
     @Override
+    public int getCrankCounter() {
+        return 0;
+    }
+
+    @Override
+    public void initializeCrankCounter(Game game) {
+
+    }
+
+    @Override
+    public void advanceCrankCounter(Game game, boolean evenIfNoContraptions) {
+
+    }
+
+    @Override
     public UserData getControllingPlayersUserData(Game game) {
         return null;
     }

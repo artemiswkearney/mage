@@ -4414,6 +4414,21 @@ public class TestPlayer implements Player {
     }
 
     @Override
+    public int getCrankCounter() {
+        return computerPlayer.getCrankCounter();
+    }
+
+    @Override
+    public void initializeCrankCounter(Game game) {
+        computerPlayer.initializeCrankCounter(game);
+    }
+
+    @Override
+    public void advanceCrankCounter(Game game, boolean evenIfNoContraptions) {
+        computerPlayer.advanceCrankCounter(game, evenIfNoContraptions);
+    }
+
+    @Override
     public SpellAbility chooseAbilityForCast(Card card, Game game, boolean noMana) {
         assertAliasSupportInChoices(false);
         MageObject object = game.getObject(card.getId()); // must be object to find real abilities (example: commander)

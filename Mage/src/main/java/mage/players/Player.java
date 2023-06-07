@@ -1103,6 +1103,17 @@ public interface Player extends MageItem, Copyable<Player> {
     boolean assembleContraptions(int value, Ability source, boolean sourceIsAssembler, Game game);
 
     /**
+     * @return 0 if player doesn't have a crank counter, or the sprocket the counter is on
+     */
+    int getCrankCounter();
+    void initializeCrankCounter(Game game);
+
+    default void advanceCrankCounter(Game game) {
+        this.advanceCrankCounter(game, false);
+    }
+    void advanceCrankCounter(Game game, boolean evenIfNoContraptions);
+
+    /**
      * Function to query if the player has strictChooseMode enabled. Only the test player can have it.
      * Function is added here so that the test suite project does not have to be imported into the client/server project.
      *

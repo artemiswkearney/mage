@@ -3,7 +3,11 @@
 package mage.game.turn;
 
 import mage.constants.PhaseStep;
+import mage.game.Game;
 import mage.game.events.GameEvent.EventType;
+import mage.players.Player;
+
+import java.util.UUID;
 
 /**
  *
@@ -27,4 +31,11 @@ public class UpkeepStep extends Step {
         return new UpkeepStep(this);
     }
 
+    @Override
+    public void beginStep(Game game, UUID activePlayerId) {
+        Player activePlayer = game.getPlayer(activePlayerId);
+        activePlayer.advanceCrankCounter(game);
+        game.applyEffects();
+        super.beginStep(game, activePlayerId);
+    }
 }
